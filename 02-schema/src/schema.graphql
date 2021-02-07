@@ -1,60 +1,85 @@
-# Step 1: Root type and root field
+# ----------------------------------------------------------------------------------------------------------------
+# - - QUERY: - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# ----------------------------------------------------------------------------------------------------------------
+# type Query to są te query o które można pytać. Tutaj wszystkie są zapisane w jednym type Query ale można je pisać też każdy osobno
 type Query {
   demo: String!
+  movies: [Movie!] # query movies zwraca tablicę elementów które są typu Movie
+  movie(id: ID!): Movie # query movie wymaga podania id aby zwrócić dany movie
+  """
+  komentarz opisujący song który to komentarz pojawi się w docs w grapiql
+  """
+  song(id: ID!): Song
 }
 
-# Step 2: Object types
+# --- mógłbym też usunąć query demo z powyższego typu Query i napisać drugi typ query taki jak ten poniżej i wyszłoby na to samo
 # type Query {
-#   movies: [Movie!]
+#   demo: String!
 # }
 
-# type Movie {
-#   id: ID!
-#   title: String!
-# }
+# -----------------------------------------------------
+# poniżej są typy danych jakie można dostać i o jakie pytać czyli Movie, i Song
 
-# Step 3: Arguments
-# type Query {
-#   movies: [Movie!]
-#   movie(id: ID!): Movie
-# } 
+interface Media {
+  id: ID!
+  title: String!
+}
 
-# type Movie {
-#   id: ID!
-#   title: String!
-# }
+"""
+komentarz opisujący typ **Movie** który to `komentarz` pojawi się w graphiql. Komentarze wspierają składnię markdown więc można używać znaków takich jak w readme
+"""
+type Movie implements Media {
+  id: ID!
+  title: String!
+  duration: String!
+}
 
-# Step 4: Interfaces
-# input MovieInput {
-#   title: String!
-#   director: String!
-# }
+type Song implements Media {
+  id: ID!
+  title: String!
+  artist: String!
+}
 
-# interface Media {
-#   id: ID!
-#   title: String!
-# }
+# ----------------------------------------------------------------------------------------------------------------
+# - - MUTACJE: - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# ----------------------------------------------------------------------------------------------------------------
+# poniżej są mutacje. Mutacje to takie jakby zpaytanie ale wysyłasz dane żeby coś zmienić a nie dostać
 
-# """Custom Type **description**"""
-# type Movie implements Media {
-#   id: ID!
-#   title: String!
-#   director: String!
-# }
-
-# type Song implements Media {
-#   id: ID!
-#   title: String!
-#   artist: String!
-# }
-
-# Step 6 Mutation
 # type Mutation {
-#   createMovie(title: String!): Movie!
+# createMovie(title: String!, duration: String!): Movie! # tworzymy mutację 'createMovie' która musi przyjąć argument title oraz duration i zwróci nowo utworzony obiekt typu Movie
 # }
 
-# Step 7 Input type
-# input MovieInput {
-#   title: String!
-#   director: String!
+#  -------- poniżej przykład jak wyglądałoby dodawanie nowego obiektu gdy ręcznie podajemy wszystkie pola (jak powyżej): ----------
+
+#  createMovie(title: "adas" duration: "436356"){
+#     id
+#     title
+#     duration
+#   }
+
+# --------------------------------------------------------------------------------------------------------------------
+# UWAGA !!!!! OD TEGO CZY PODAJESZ RĘCZNIE POLA (JAK WYŻEJ) CZY PRZEKAZUJESZ OBIEKT INPUT (PONIŻEJ) ZALEŻEĆ BĘDZIE RESOLVER (zobacz w app.js)
+# --------------------------------------------------------------------------------------------------------------------
+
+type Mutation {
+  createMovie(movie: MovieInput): Movie! # w możemy też wykorzystać input zamiast ręcznie podawać wszystkie argumenty do podania
+}
+
+# Jeśli Mutacja ma np przyjmować więcej argukmentów to dobrze jest utworzyć typ input w któym opiszemy wszystkie pola, jakie musimy podać podczas tworzenia nowego obiektu
+input MovieInput {
+  title: String!
+  duration: String!
+}
+
+#  -------- poniżej przykład jak wyglądałoby dodawanie nowego obiektu gdy jako wartosći podajemy jakiś input type (np ten wyżej): ----------
+
+# mutation{
+#   createMovie(movie:{   # przekazujesz po prostu obiekt zwykly bo MovieInput to obiekt przecież i tylko podajesz title i duration
+#     title: "asdasd"
+#     duration: "346424523"
+#   }){
+#     id
+#     title
+#     duration
+#   }
 # }

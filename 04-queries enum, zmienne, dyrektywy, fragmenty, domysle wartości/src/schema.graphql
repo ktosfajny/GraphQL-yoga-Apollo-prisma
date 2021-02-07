@@ -1,0 +1,129 @@
+# Query
+type Query {
+  movies: [Movie!]
+  movie(id: ID!): Movie
+  directors: [Director!]
+  director(id: ID!): Director
+}
+
+# Types
+type Movie {
+  id: ID!
+  title: String!
+  director: Director!
+  duration(unit: TimeUnit = SECONDS): Int! # duration typu enum TimeUnit (zdefiniowanego poniżej), który domyślnie jest SECONDS. Chodzi o to że jak robisz np query to możesz tutaj teraz wybrać sobie duration i przekazać do zapytania do servera info że chcesz dostać to duration np w sekundach albo minutach, przykładowe zapytanie:
+  #   {
+  #    movie(id:1){
+  #     duration(unit:MINUTES)
+  #   }
+  # }
+  # wtedy do resolvera idzie info że chcesz czas w SECONDS, on to wykrywa, robi jakieś obliczenia i zwraca sekundy (zobacz app.js)
+}
+
+type Director {
+  id: ID!
+  name: String!
+  movies: [Movie!]
+}
+
+# Scalars
+enum TimeUnit {
+  SECONDS
+  MINUTES
+  HOURS
+}
+
+# --------------------------------------------------------------------------------------
+# -- ALIASY: ---------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+
+# załóżmy że np chcesz pobrać 'duration' 2 razy, jedno w jednostce MINUTES a drugie w HOURS. Wtedy musisz użyc aliasu:
+# {
+#    movie(id:1){
+#     duration_in_minutes:duration(unit:MINUTES)
+#     duration_in_hours:duration(unit:HOURS)     # ta nazwa duration_in_hours to tylko nazwa, może być nawet 'asd' albo 'pomidor'
+#   }
+# }
+
+# ---------------------------------------------------
+
+# można też ndawać własne nazwy do query i potem w graphiql móc wybrać który chce się wykonać (wklej całość w graphiql):
+
+# query getAllMovies{
+#   movies{
+#     id
+#     title
+#   }
+# }
+#
+# query getSignleMovie{
+#    movie(id:1){
+#     duration_in_minutes:duration(unit:MINUTES)
+#       duration_in_hours:duration(unit:HOURS)
+#   }
+# }
+
+# --------------------------------------------------------------------------------------
+# -- ZMIENNIE DO ZAPYTANIA: ------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+
+### tak wygląda zapytanie ze zmienną typu ID która domyslnie ma warotść 6 (ale można przekazać normalnie wartość, zobacz niżej)
+
+# query getSignleMovie($movieID: ID! = 6){
+#    movie(id:$movieID){
+#     duration_in_minutes:duration(unit:MINUTES)
+#       duration_in_hours:duration(unit:HOURS)
+#   }
+# }
+
+#### aby wykonać powyższe query to w graphiql na dole z lewej w QUERY VARIABLES PISZESZ:
+# {
+#   "movieID": 2
+# }
+
+# --------------------------------------------------------------------------------------
+# -- DYREKTYWY: ------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+
+### przekazujesz zmienną withDirector która jest typu boolean i nie ma domyslnej wartości tylko trzeba ją ręcznie przekazać (ale może mieć domyslną tak samo jak ma movieID które jest typu ID i jej domyslna wartość to 1)
+
+# query fetchMovies($movieID: ID = 1, $withDirector:Boolean!) {
+#   movie(id: $movieID){
+#     id
+#     title
+#     duration_in_min:duration(unit:SECONDS)
+#     duration_in_sec:duration(unit:MINUTES)
+#     director @include(if:$withDirector){ # tutaj robisz include i dajesz if (ale możesz też inne rzeczy, o tym niżej we fragmentach)  ze #                                            jak zmienna jest true to pobierasz jeszcze name
+#       name
+#     }
+#   }
+# }
+
+#### aby wykonać powyższe query to w graphiql na dole z lewej w QUERY VARIABLES PISZESZ:
+# {
+#   "movieID": 1,
+#   "withDirector": true"
+# }
+### (oczywiście zmienne mają też domyśle wartości więc nawet jak nic nie podasz to się coś pobierze)
+
+# --------------------------------------------------------------------------------------
+# -- FRAGMENTY: ------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+
+### fragmenty to taki jakby mixin którego mozna użyć w zapytaniu (wklej poniższy kod do grahiql):
+
+# query fetchMovies($movieID: ID = 1, $withDirector:Boolean!) {
+#   movie(id: $movieID){
+#     id
+#     title
+#     duration_in_min:duration(unit:SECONDS)
+#     duration_in_sec:duration(unit:MINUTES)
+#    ...directorInfo        # używasz fragmentu directorInfo (nazwa oczywiście może być inna)
+#   }
+# }
+
+# fragment directorInfo on Movie {     #tworzysz fragment directorInfo na typie Movie
+#   director @include(if: $withDirector){   # pobiera director (a reczej jego name) ale tylko jeśli zmienna jest true
+#     name
+#   }
+# }

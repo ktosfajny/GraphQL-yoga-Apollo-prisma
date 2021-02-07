@@ -1,3 +1,7 @@
+### ------------------------------------------------------------------------------------------- ###
+#      W TYM PLIKU TLKO WKLEIŁ QUERY JAKIE WPISYWAŁ, TO OC TU JEST NIC NIE DEFINIUJE ANI NIC
+### ------------------------------------------------------------------------------------------- ###
+
 # Basic query
 query {
   movies { # root field

@@ -1,5 +1,5 @@
-# The HTTP endpoint for your Prisma API
-endpoint: 'http://localhost:4466'
+# The HTTP endpoint for your Prisma API, To powien być endpoint dockera na którym działa server prismy ()zobacz ten endpoint w pliku docker-compose.yml)
+endpoint: "http://localhost:4466"
 
 # Points to the file that contains your datamodel
 datamodel: datamodel.prisma
